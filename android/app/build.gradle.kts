@@ -3,20 +3,43 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
+val signingEnvironment = mapOf(
+    "KEYSTORE_FILE" to providers.environmentVariable("KEYSTORE_FILE").orNull,
+    "KEYSTORE_PASSWORD" to providers.environmentVariable("KEYSTORE_PASSWORD").orNull,
+    "KEY_ALIAS" to providers.environmentVariable("KEY_ALIAS").orNull,
+    "KEY_PASSWORD" to providers.environmentVariable("KEY_PASSWORD").orNull,
+)
+val configuredSigningValues = signingEnvironment.values.count { !it.isNullOrBlank() }
+if (configuredSigningValues != 0 && configuredSigningValues != signingEnvironment.size) {
+    throw GradleException("All release signing environment variables must be provided together.")
+}
+val releaseSigningConfigured = configuredSigningValues == signingEnvironment.size
+
 android {
     namespace = "com.anmoltanwar.calculator"
     compileSdk {
-        version = release(37)
+        version = release(36)
     }
 
     defaultConfig {
         applicationId = "com.anmoltanwar.calculator"
         minSdk = 36
-        targetSdk = 37
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        if (releaseSigningConfigured) {
+            create("release") {
+                storeFile = file(signingEnvironment.getValue("KEYSTORE_FILE")!!)
+                storePassword = signingEnvironment.getValue("KEYSTORE_PASSWORD")
+                keyAlias = signingEnvironment.getValue("KEY_ALIAS")
+                keyPassword = signingEnvironment.getValue("KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
@@ -24,6 +47,9 @@ android {
             optimization {
                 enable = true
                 packageScope = setOf("androidx.**", "kotlin.**", "kotlinx.**")
+            }
+            if (releaseSigningConfigured) {
+                signingConfig = signingConfigs.getByName("release")
             }
         }
     }
