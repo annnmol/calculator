@@ -37,8 +37,6 @@ hs_err_pid*
 replay_pid*
 
 # Archives and packaged artifacts
-*.jar
-!android/gradle/wrapper/gradle-wrapper.jar
 *.war
 *.nar
 *.ear
