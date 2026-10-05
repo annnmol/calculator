@@ -44,10 +44,6 @@ android {
 
     buildTypes {
         release {
-            optimization {
-                enable = true
-                packageScope = setOf("androidx.**", "kotlin.**", "kotlinx.**")
-            }
             if (releaseSigningConfigured) {
                 signingConfig = signingConfigs.getByName("release")
             }
